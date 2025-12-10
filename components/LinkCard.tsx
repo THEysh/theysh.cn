@@ -59,28 +59,28 @@ const LinkCard: React.FC<LinkCardProps> = ({ link, onDelete, onEdit }) => {
       </div>
 
       {/* Icon Area */}
-      {/* Added 'relative' to ensure fallback icon stays inside this box */}
       <div className="relative w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center overflow-hidden shadow-inner p-2 group-hover:bg-white/20 transition-colors pointer-events-none">
-        <img 
-            src={displayIconUrl} 
-            alt={link.title} 
-            className={`w-full h-full object-contain filter drop-shadow-sm transition-opacity duration-300 ${imgError ? 'opacity-0' : 'opacity-100'}`}
-            onError={(e) => {
-                const img = e.target as HTMLImageElement;
-                // If using custom URL and it fails, try fallback once
-                if (link.iconUrl && img.src === link.iconUrl) {
-                     img.src = `https://www.google.com/s2/favicons?domain=${link.url}&sz=128`;
-                } else {
-                    // If fallback also fails (or no custom url), show internal fallback icon
-                    setImgError(true);
-                }
-            }}
-        />
-        
-        {/* Fallback Icon - Visible behind image (z-10 negative) */}
-        <div className="absolute inset-0 flex items-center justify-center -z-10">
-             <ExternalLink className="text-white/20" />
-        </div>
+        {!imgError ? (
+            <img 
+                src={displayIconUrl} 
+                alt={link.title} 
+                className="w-full h-full object-contain filter drop-shadow-sm transition-opacity duration-300"
+                onError={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    // If using custom URL and it fails, try fallback once
+                    if (link.iconUrl && img.src === link.iconUrl) {
+                         img.src = `https://www.google.com/s2/favicons?domain=${link.url}&sz=128`;
+                    } else {
+                        // If fallback also fails (or no custom url), show internal fallback icon
+                        setImgError(true);
+                    }
+                }}
+            />
+        ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+                 <ExternalLink className="text-white/20" />
+            </div>
+        )}
       </div>
       
       <span className="text-sm font-medium text-white/80 group-hover:text-white truncate w-full text-center transition-colors pointer-events-none">
