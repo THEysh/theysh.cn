@@ -1,7 +1,17 @@
 import React, { useEffect, useRef } from 'react';
 
-const AnimatedBackground: React.FC = () => {
+interface AnimatedBackgroundProps {
+  pulseSpeedMultiplier?: number;
+}
+
+const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({ pulseSpeedMultiplier = 1 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // Store multiplier in ref to access inside animation loop without re-triggering effect
+  const speedRef = useRef(pulseSpeedMultiplier);
+
+  useEffect(() => {
+    speedRef.current = pulseSpeedMultiplier;
+  }, [pulseSpeedMultiplier]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -27,7 +37,8 @@ const AnimatedBackground: React.FC = () => {
       speedY: number;
       opacity: number;
       baseOpacity: number;
-      pulseSpeed: number;
+      pulseDirection: number;
+      basePulseSpeed: number;
 
       constructor() {
         this.x = Math.random() * canvas!.width;
@@ -40,17 +51,24 @@ const AnimatedBackground: React.FC = () => {
         
         this.baseOpacity = Math.random() * 0.5 + 0.1;
         this.opacity = this.baseOpacity;
-        this.pulseSpeed = (Math.random() * 0.01 + 0.005) * (Math.random() > 0.5 ? 1 : -1);
+        this.pulseDirection = Math.random() > 0.5 ? 1 : -1;
+        this.basePulseSpeed = Math.random() * 0.01 + 0.005;
       }
 
       update() {
         this.x += this.speedX;
         this.y += this.speedY;
 
-        // Twinkle/Pulse effect
-        this.opacity += this.pulseSpeed;
-        if (this.opacity >= this.baseOpacity + 0.2 || this.opacity <= Math.max(0, this.baseOpacity - 0.2)) {
-            this.pulseSpeed = -this.pulseSpeed;
+        // Twinkle/Pulse effect using the speed multiplier
+        const currentPulseSpeed = this.basePulseSpeed * speedRef.current;
+        this.opacity += currentPulseSpeed * this.pulseDirection;
+
+        if (this.opacity >= this.baseOpacity + 0.2) {
+            this.opacity = this.baseOpacity + 0.2;
+            this.pulseDirection = -1;
+        } else if (this.opacity <= Math.max(0, this.baseOpacity - 0.2)) {
+            this.opacity = Math.max(0, this.baseOpacity - 0.2);
+            this.pulseDirection = 1;
         }
 
         // Wrap around screen
