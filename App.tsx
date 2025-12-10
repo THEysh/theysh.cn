@@ -10,8 +10,21 @@ import { LinkItem, SearchEngine } from './types';
 import { INITIAL_LINKS } from './constants';
 
 const App: React.FC = () => {
-  const [links, setLinks] = useState<LinkItem[]>([]);
-  const [currentEngine, setCurrentEngine] = useState<SearchEngine>(SearchEngine.Google);
+  // Initialize state directly from localStorage to avoid race conditions and overwriting data
+  const [links, setLinks] = useState<LinkItem[]>(() => {
+    try {
+      const savedLinks = localStorage.getItem('theysh_links');
+      return savedLinks ? JSON.parse(savedLinks) : INITIAL_LINKS;
+    } catch (error) {
+      console.error('Failed to load links from local storage:', error);
+      return INITIAL_LINKS;
+    }
+  });
+
+  const [currentEngine, setCurrentEngine] = useState<SearchEngine>(() => {
+    const savedEngine = localStorage.getItem('theysh_engine');
+    return (savedEngine as SearchEngine) || SearchEngine.Google;
+  });
   
   // Background Settings
   const [particleSpeed, setParticleSpeed] = useState(1);
@@ -20,21 +33,6 @@ const App: React.FC = () => {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLink, setEditingLink] = useState<LinkItem | null>(null);
-
-  // Load data from local storage on mount
-  useEffect(() => {
-    const savedLinks = localStorage.getItem('theysh_links');
-    if (savedLinks) {
-      setLinks(JSON.parse(savedLinks));
-    } else {
-      setLinks(INITIAL_LINKS);
-    }
-
-    const savedEngine = localStorage.getItem('theysh_engine');
-    if (savedEngine) {
-      setCurrentEngine(savedEngine as SearchEngine);
-    }
-  }, []);
 
   // Save links whenever they change
   useEffect(() => {
